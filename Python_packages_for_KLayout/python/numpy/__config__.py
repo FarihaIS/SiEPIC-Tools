@@ -87,8 +87,8 @@ CONFIG = _cleanup(
             },
         },
         "Python Information": {
-            "path": r"/private/var/folders/76/zy5ktkns50v6gt5g8r0sf6sc0000gn/T/cibw-run-4sgjw1qw/cp310-macosx_arm64/build/venv/bin/python",
-            "version": "3.10",
+            "path": r"/private/var/folders/76/zy5ktkns50v6gt5g8r0sf6sc0000gn/T/cibw-run-4sgjw1qw/cp311-macosx_arm64/build/venv/bin/python",
+            "version": "3.11",
         },
         "SIMD Extensions": {
             "baseline": __cpu_baseline__,
