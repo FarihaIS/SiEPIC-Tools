@@ -51,7 +51,7 @@ CONFIG = _cleanup(
             },
             "pythran": {
                 "version": "0.14.0",
-                "include directory": r"../../pip-build-env-xaufkkio/overlay/lib/python3.10/site-packages/pythran"
+                "include directory": r"../../pip-build-env-iq776ekw/overlay/lib/python3.11/site-packages/pythran"
             },
         },
         "Machine Information": {
@@ -98,8 +98,8 @@ CONFIG = _cleanup(
             },
         },
         "Python Information": {
-            "path": r"/private/var/folders/76/zy5ktkns50v6gt5g8r0sf6sc0000gn/T/cibw-run-dp6he_rc/cp310-macosx_arm64/build/venv/bin/python",
-            "version": "3.10",
+            "path": r"/private/var/folders/76/zy5ktkns50v6gt5g8r0sf6sc0000gn/T/cibw-run-dp6he_rc/cp311-macosx_arm64/build/venv/bin/python",
+            "version": "3.11",
         },
     }
 )
