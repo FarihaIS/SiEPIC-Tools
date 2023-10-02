@@ -28,19 +28,19 @@ CONFIG = _cleanup(
             "c": {
                 "name": "clang",
                 "linker": "ld64",
-                "version": "13.1.6",
+                "version": "14.0.0",
                 "commands": "cc",
             },
             "cython": {
                 "name": "cython",
                 "linker": "cython",
-                "version": "0.29.33",
+                "version": "0.29.36",
                 "commands": "cython",
             },
             "c++": {
                 "name": "clang",
                 "linker": "ld64",
-                "version": "13.1.6",
+                "version": "14.0.0",
                 "commands": "c++",
             },
             "fortran": {
@@ -50,8 +50,8 @@ CONFIG = _cleanup(
                 "commands": "gfortran",
             },
             "pythran": {
-                "version": "0.12.1",
-                "include directory": r"/private/var/folders/_f/lyvxf0v13gs7984d7sf7j83c0000gn/T/pip-build-env-jl8pxyjb/overlay/lib/python3.10/site-packages/pythran"
+                "version": "0.14.0",
+                "include directory": r"../../pip-build-env-xaufkkio/overlay/lib/python3.10/site-packages/pythran"
             },
         },
         "Machine Information": {
@@ -71,28 +71,34 @@ CONFIG = _cleanup(
         },
         "Build Dependencies": {
             "blas": {
-                "name": "OpenBLAS",
+                "name": "openblas",
                 "found": bool("True".lower().replace('false', '')),
-                "version": "0.3.18",
-                "detection method": "cmake",
-                "include directory": r"unknown",
-                "lib directory": r"unknown",
-                "openblas configuration": "unknown",
-                "pc file directory": r"unknown",
+                "version": "0.3.21.dev",
+                "detection method": "pkgconfig",
+                "include directory": r"/opt/arm64-builds/include",
+                "lib directory": r"/opt/arm64-builds/lib",
+                "openblas configuration": "USE_64BITINT= DYNAMIC_ARCH=1 DYNAMIC_OLDER= NO_CBLAS= NO_LAPACK= NO_LAPACKE= NO_AFFINITY=1 USE_OPENMP= SANDYBRIDGE MAX_THREADS=3",
+                "pc file directory": r"/opt/arm64-builds/lib/pkgconfig",
             },
             "lapack": {
-                "name": "OpenBLAS",
+                "name": "openblas",
                 "found": bool("True".lower().replace('false', '')),
-                "version": "0.3.18",
-                "detection method": "cmake",
+                "version": "0.3.21.dev",
+                "detection method": "pkgconfig",
+                "include directory": r"/opt/arm64-builds/include",
+                "lib directory": r"/opt/arm64-builds/lib",
+                "openblas configuration": "USE_64BITINT= DYNAMIC_ARCH=1 DYNAMIC_OLDER= NO_CBLAS= NO_LAPACK= NO_LAPACKE= NO_AFFINITY=1 USE_OPENMP= SANDYBRIDGE MAX_THREADS=3",
+                "pc file directory": r"/opt/arm64-builds/lib/pkgconfig",
+            },
+            "pybind11": {
+                "name": "pybind11",
+                "version": "2.11.0",
+                "detection method": "config-tool",
                 "include directory": r"unknown",
-                "lib directory": r"unknown",
-                "openblas configuration": "unknown",
-                "pc file directory": r"unknown",
             },
         },
         "Python Information": {
-            "path": r"/private/var/folders/_f/lyvxf0v13gs7984d7sf7j83c0000gn/T/cibw-run-s3_k_ke5/cp310-macosx_arm64/build/venv/bin/python",
+            "path": r"/private/var/folders/76/zy5ktkns50v6gt5g8r0sf6sc0000gn/T/cibw-run-dp6he_rc/cp310-macosx_arm64/build/venv/bin/python",
             "version": "3.10",
         },
     }
