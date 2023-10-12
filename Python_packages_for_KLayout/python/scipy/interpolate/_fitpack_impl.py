@@ -171,6 +171,8 @@ def splprep(x, w=None, u=None, ub=None, ue=None, k=3, task=0, s=None, t=None,
        returned.  Values of ``y[m-1]`` and ``w[m-1]`` are not used.
     quiet : int, optional
          Non-zero to suppress messages.
+         This parameter is deprecated; use standard Python warning filters
+         instead.
 
     Returns
     -------
@@ -220,7 +222,7 @@ def splprep(x, w=None, u=None, ub=None, ue=None, k=3, task=0, s=None, t=None,
     if per:
         for i in range(idim):
             if x[i][0] != x[i][-1]:
-                if not quiet:
+                if quiet < 2:
                     warnings.warn(RuntimeWarning('Setting x[%d][%d]=x[%d][0]' %
                                                  (i, m, i)))
                 x[i][-1] = x[i][0]
@@ -299,8 +301,8 @@ def splprep(x, w=None, u=None, ub=None, ue=None, k=3, task=0, s=None, t=None,
         else:
             try:
                 raise _iermess[ier][1](_iermess[ier][0])
-            except KeyError as e:
-                raise _iermess['unknown'][1](_iermess['unknown'][0]) from e
+            except KeyError:
+                raise _iermess['unknown'][1](_iermess['unknown'][0])
     if full_output:
         try:
             return tcku, fp, ier, _iermess[ier][0]
@@ -371,6 +373,8 @@ def splrep(x, y, w=None, xb=None, xe=None, k=3, task=0, s=None, t=None,
         y[m-1] and w[m-1] are not used.
     quiet : bool, optional
         Non-zero to suppress messages.
+        This parameter is deprecated; use standard Python warning filters
+        instead.
 
     Returns
     -------
@@ -386,6 +390,13 @@ def splrep(x, y, w=None, xb=None, xe=None, k=3, task=0, s=None, t=None,
     msg : str, optional
         A message corresponding to the integer flag, ier.
 
+    Notes
+    -----
+    See splev for evaluation of the spline and its derivatives.
+
+    The user is responsible for assuring that the values of *x* are unique.
+    Otherwise, *splrep* will not return sensible results.
+
     See Also
     --------
     UnivariateSpline, BivariateSpline
@@ -396,9 +407,6 @@ def splrep(x, y, w=None, xb=None, xe=None, k=3, task=0, s=None, t=None,
     -----
     See splev for evaluation of the spline and its derivatives. Uses the
     FORTRAN routine curfit from FITPACK.
-
-    The user is responsible for assuring that the values of *x* are unique.
-    Otherwise, *splrep* will not return sensible results.
 
     If provided, knots `t` must satisfy the Schoenberg-Whitney conditions,
     i.e., there must be a subset of data points ``x[j]`` such that
@@ -487,9 +495,9 @@ def splrep(x, y, w=None, xb=None, xe=None, k=3, task=0, s=None, t=None,
         t = _curfit_cache['t']
         wrk = _curfit_cache['wrk']
         iwrk = _curfit_cache['iwrk']
-    except KeyError as e:
+    except KeyError:
         raise TypeError("must call with task=1 only after"
-                        " call with task=0,-1") from e
+                        " call with task=0,-1")
     if not per:
         n, c, fp, ier = dfitpack.curfit(task, x, y, w, t, wrk, iwrk,
                                         xb, xe, k, s)
@@ -506,8 +514,8 @@ def splrep(x, y, w=None, xb=None, xe=None, k=3, task=0, s=None, t=None,
         else:
             try:
                 raise _iermess[ier][1](_iermess[ier][0])
-            except KeyError as e:
-                raise _iermess['unknown'][1](_iermess['unknown'][0]) from e
+            except KeyError:
+                raise _iermess['unknown'][1](_iermess['unknown'][0])
     if full_output:
         try:
             return tck, fp, ier, _iermess[ier][0]
@@ -654,7 +662,7 @@ def splint(a, b, tck, full_output=0):
         return list(map(lambda c, a=a, b=b, t=t, k=k:
                         splint(a, b, [t, c, k]), c))
     else:
-        aint, wrk = dfitpack.splint(t, c, k, a, b)
+        aint, wrk = _fitpack._splint(t, c, k, a, b)
         if full_output:
             return aint, wrk
         else:
@@ -683,7 +691,7 @@ def sproot(tck, mest=10):
     zeros : ndarray
         An array giving the roots of the spline.
 
-    See Also
+    See also
     --------
     splprep, splrep, splint, spalde, splev
     bisplrep, bisplev
@@ -714,15 +722,15 @@ def sproot(tck, mest=10):
     else:
         if len(t) < 8:
             raise TypeError("The number of knots %d>=8" % len(t))
-        z, m, ier = dfitpack.sproot(t, c, mest)
+        z, ier = _fitpack._sproot(t, c, k, mest)
         if ier == 10:
             raise TypeError("Invalid input data. "
                             "t1<=..<=t4<t5<..<tn-3<=..<=tn must hold.")
         if ier == 0:
-            return z[:m]
+            return z
         if ier == 1:
             warnings.warn(RuntimeWarning("The number of zeros exceeds mest"))
-            return z[:m]
+            return z
         raise TypeError("Unknown error")
 
 
@@ -776,7 +784,7 @@ def spalde(x, tck):
         x = atleast_1d(x)
         if len(x) > 1:
             return list(map(lambda x, tck=tck: spalde(x, tck), x))
-        d, ier = dfitpack.spalde(t, c, k+1, x[0])
+        d, ier = _fitpack._spalde(t, c, k, x[0])
         if ier == 0:
             return d
         if ier == 10:
@@ -842,6 +850,8 @@ def bisplrep(x, y, z, w=None, xb=None, xe=None, yb=None, ye=None,
         ``nyest = max(ky+sqrt(m/2),2*ky+3)``.
     quiet : int, optional
         Non-zero to suppress printing of messages.
+        This parameter is deprecated; use standard Python warning filters
+        instead.
 
     Returns
     -------
@@ -868,10 +878,6 @@ def bisplrep(x, y, z, w=None, xb=None, xe=None, yb=None, ye=None,
     See `bisplev` to evaluate the value of the B-spline given its tck
     representation.
 
-    If the input data is such that input dimensions have incommensurate
-    units and differ by many orders of magnitude, the interpolant may have
-    numerical artifacts. Consider rescaling the data before interpolation.
-
     References
     ----------
     .. [1] Dierckx P.:An algorithm for surface fitting with spline functions
@@ -880,10 +886,6 @@ def bisplrep(x, y, z, w=None, xb=None, xe=None, yb=None, ye=None,
        report tw50, Dept. Computer Science,K.U.Leuven, 1980.
     .. [3] Dierckx P.:Curve and surface fitting with splines, Monographs on
        Numerical Analysis, Oxford University Press, 1993.
-
-    Examples
-    --------
-    Examples are given :ref:`in the tutorial <tutorial-interpolate_2d_spline>`.
 
     """
     x, y, z = map(ravel, [x, y, z])  # ensure 1-d arrays.
@@ -976,8 +978,8 @@ def bisplrep(x, y, z, w=None, xb=None, xe=None, yb=None, ye=None,
         else:
             try:
                 raise _iermess2[ierm][1](_iermess2[ierm][0])
-            except KeyError as e:
-                raise _iermess2['unknown'][1](_iermess2['unknown'][0]) from e
+            except KeyError:
+                raise _iermess2['unknown'][1](_iermess2['unknown'][0])
     if full_output:
         try:
             return tck, fp, ier, _iermess2[ierm][0]
@@ -994,7 +996,7 @@ def bisplev(x, y, tck, dx=0, dy=0):
     Return a rank-2 array of spline function values (or spline derivative
     values) at points given by the cross-product of the rank-1 arrays `x` and
     `y`.  In special cases, return an array or just a float if either `x` or
-    `y` or both are floats.  Based on BISPEV and PARDER from FITPACK.
+    `y` or both are floats.  Based on BISPEV from FITPACK.
 
     Parameters
     ----------
@@ -1033,10 +1035,6 @@ def bisplev(x, y, tck, dx=0, dy=0):
        report tw50, Dept. Computer Science,K.U.Leuven, 1980.
     .. [3] Dierckx P. : Curve and surface fitting with splines,
        Monographs on Numerical Analysis, Oxford University Press, 1993.
-
-    Examples
-    --------
-    Examples are given :ref:`in the tutorial <tutorial-interpolate_2d_spline>`.
 
     """
     tx, ty, c, kx, ky = tck
@@ -1225,9 +1223,9 @@ def splder(tck, n=1):
                 # Adjust knots
                 t = t[1:-1]
                 k -= 1
-        except FloatingPointError as e:
+        except FloatingPointError:
             raise ValueError(("The spline has internal repeated knots "
-                              "and is not differentiable %d times") % n) from e
+                              "and is not differentiable %d times") % n)
 
     return t, c, k
 

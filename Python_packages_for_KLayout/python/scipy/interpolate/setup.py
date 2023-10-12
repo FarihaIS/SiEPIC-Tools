@@ -1,4 +1,3 @@
-import os
 from os.path import join
 
 
@@ -6,7 +5,7 @@ def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
     from scipy._build_utils import (get_f2py_int64_options,
                                     ilp64_pre_build_hook,
-                                    uses_blas64, numpy_nodepr_api)
+                                    uses_blas64)
 
     if uses_blas64():
         # TODO: Note that fitpack does not use BLAS/LAPACK.
@@ -31,9 +30,6 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('interpnd',
                          sources=['interpnd.c'])
 
-    config.add_extension('_rgi_cython',
-                         sources=['_rgi_cython.c'])
-
     config.add_extension('_ppoly',
                          sources=['_ppoly.c'])
 
@@ -44,7 +40,7 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('_fitpack',
                          sources=['src/_fitpackmodule.c'],
                          libraries=['fitpack'],
-                         define_macros=define_macros + numpy_nodepr_api['define_macros'],
+                         define_macros=define_macros,
                          depends=(['src/__fitpack.h']
                                   + fitpack_src)
                          )
@@ -56,15 +52,6 @@ def configuration(parent_package='',top_path=None):
                          depends=fitpack_src,
                          f2py_options=f2py_options
                          )
-
-    if int(os.environ.get('SCIPY_USE_PYTHRAN', 1)):
-        from pythran.dist import PythranExtension
-        ext = PythranExtension(
-            'scipy.interpolate._rbfinterp_pythran',
-            sources=['scipy/interpolate/_rbfinterp_pythran.py'],
-            config=['compiler.blas=none']
-            )
-        config.ext_modules.append(ext)
 
     config.add_data_dir('tests')
 

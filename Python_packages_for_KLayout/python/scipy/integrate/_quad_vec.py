@@ -6,7 +6,7 @@ import functools
 
 import numpy as np
 
-from scipy._lib._util import MapWrapper, _FunctionWrapper
+from scipy._lib._util import MapWrapper
 
 
 class LRUDict(collections.OrderedDict):
@@ -15,7 +15,7 @@ class LRUDict(collections.OrderedDict):
 
     def __setitem__(self, key, value):
         existing_key = (key in self)
-        super().__setitem__(key, value)
+        super(LRUDict, self).__setitem__(key, value)
         if existing_key:
             self.move_to_end(key)
         elif len(self) > self.__max_size:
@@ -26,7 +26,7 @@ class LRUDict(collections.OrderedDict):
         raise NotImplementedError()
 
 
-class SemiInfiniteFunc:
+class SemiInfiniteFunc(object):
     """
     Argument transform from (start, +-oo) to (0, 1)
     """
@@ -54,7 +54,7 @@ class SemiInfiniteFunc:
             return self._sgn * (f / t) / t
 
 
-class DoubleInfiniteFunc:
+class DoubleInfiniteFunc(object):
     """
     Argument transform from (-oo, oo) to (-1, 1)
     """
@@ -91,7 +91,7 @@ def _get_sizeof(obj):
         return 64
 
 
-class _Bunch:
+class _Bunch(object):
     def __init__(self, **kwargs):
         self.__keys = kwargs.keys()
         self.__dict__.update(**kwargs)
@@ -102,8 +102,7 @@ class _Bunch:
 
 
 def quad_vec(f, a, b, epsabs=1e-200, epsrel=1e-8, norm='2', cache_size=100e6, limit=10000,
-             workers=1, points=None, quadrature=None, full_output=False,
-             *, args=()):
+             workers=1, points=None, quadrature=None, full_output=False):
     r"""Adaptive integration of a vector-valued function.
 
     Parameters
@@ -122,9 +121,6 @@ def quad_vec(f, a, b, epsabs=1e-200, epsrel=1e-8, norm='2', cache_size=100e6, li
         Vector norm to use for error estimation.
     cache_size : int, optional
         Number of bytes to use for memoization.
-    limit : float or int, optional
-        An upper bound on the number of subintervals used in the adaptive
-        algorithm.
     workers : int or map-like callable, optional
         If `workers` is an integer, part of the computation is done in
         parallel subdivided to this many tasks (using
@@ -136,18 +132,14 @@ def quad_vec(f, a, b, epsabs=1e-200, epsrel=1e-8, norm='2', cache_size=100e6, li
         This evaluation is carried out as ``workers(func, iterable)``.
     points : list, optional
         List of additional breakpoints.
-    quadrature : {'gk21', 'gk15', 'trapezoid'}, optional
+    quadrature : {'gk21', 'gk15', 'trapz'}, optional
         Quadrature rule to use on subintervals.
         Options: 'gk21' (Gauss-Kronrod 21-point rule),
         'gk15' (Gauss-Kronrod 15-point rule),
-        'trapezoid' (composite trapezoid rule).
+        'trapz' (composite trapezoid rule).
         Default: 'gk21' for finite intervals and 'gk15' for (semi-)infinite
     full_output : bool, optional
         Return an additional ``info`` dictionary.
-    args : tuple, optional
-        Extra arguments to pass to function, if any.
-
-        .. versionadded:: 1.8.0
 
     Returns
     -------
@@ -209,7 +201,6 @@ def quad_vec(f, a, b, epsabs=1e-200, epsrel=1e-8, norm='2', cache_size=100e6, li
     We can compute integrations of a vector-valued function:
 
     >>> from scipy.integrate import quad_vec
-    >>> import numpy as np
     >>> import matplotlib.pyplot as plt
     >>> alpha = np.linspace(0.0, 2.0, num=30)
     >>> f = lambda x: x**alpha
@@ -223,13 +214,6 @@ def quad_vec(f, a, b, epsabs=1e-200, epsrel=1e-8, norm='2', cache_size=100e6, li
     """
     a = float(a)
     b = float(b)
-
-    if args:
-        if not isinstance(args, tuple):
-            args = (args,)
-
-        # create a wrapped function to allow the use of map and Pool.map
-        f = _FunctionWrapper(f, args)
 
     # Use simple transformations to deal with integrals over infinite
     # intervals.
@@ -283,6 +267,8 @@ def quad_vec(f, a, b, epsabs=1e-200, epsrel=1e-8, norm='2', cache_size=100e6, li
     else:
         norm_func = norm_funcs[norm]
 
+    mapwrapper = MapWrapper(workers)
+
     parallel_count = 128
     min_intervals = 2
 
@@ -290,10 +276,9 @@ def quad_vec(f, a, b, epsabs=1e-200, epsrel=1e-8, norm='2', cache_size=100e6, li
         _quadrature = {None: _quadrature_gk21,
                        'gk21': _quadrature_gk21,
                        'gk15': _quadrature_gk15,
-                       'trapz': _quadrature_trapezoid,  # alias for backcompat
-                       'trapezoid': _quadrature_trapezoid}[quadrature]
-    except KeyError as e:
-        raise ValueError("unknown quadrature {!r}".format(quadrature)) from e
+                       'trapz': _quadrature_trapz}[quadrature]
+    except KeyError:
+        raise ValueError("unknown quadrature {!r}".format(quadrature))
 
     # Initial interval set
     if points is None:
@@ -355,7 +340,7 @@ def quad_vec(f, a, b, epsabs=1e-200, epsrel=1e-8, norm='2', cache_size=100e6, li
     }
 
     # Process intervals
-    with MapWrapper(workers) as mapwrapper:
+    with mapwrapper:
         ier = NOT_CONVERGED
 
         while intervals and len(intervals) < limit:
@@ -457,7 +442,7 @@ def _subdivide_interval(args):
     return dint, derr, dround_err, subintervals, dneval
 
 
-def _quadrature_trapezoid(x1, x2, f, norm_func):
+def _quadrature_trapz(x1, x2, f, norm_func):
     """
     Composite trapezoid quadrature
     """
@@ -477,8 +462,8 @@ def _quadrature_trapezoid(x1, x2, f, norm_func):
     return s2, err, round_err
 
 
-_quadrature_trapezoid.cache_size = 3 * 3
-_quadrature_trapezoid.num_eval = 3
+_quadrature_trapz.cache_size = 3 * 3
+_quadrature_trapz.num_eval = 3
 
 
 def _quadrature_gk(a, b, f, norm_func, x, w, v):

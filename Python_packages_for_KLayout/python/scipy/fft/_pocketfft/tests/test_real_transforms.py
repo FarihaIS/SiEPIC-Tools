@@ -1,5 +1,4 @@
 from os.path import join, dirname
-from typing import Callable, Dict, Tuple, Union, Type
 
 import numpy as np
 from numpy.testing import (
@@ -195,13 +194,8 @@ def test_complex(transform, dtype):
     assert_array_almost_equal(x, y)
 
 
-DecMapType = Dict[
-    Tuple[Callable[..., np.ndarray], Union[Type[np.floating], Type[int]], int],
-    int,
-]
-
 # map (tranform, dtype, type) -> decimal
-dec_map: DecMapType = {
+dec_map = {
     # DCT
     (dct, np.double, 1): 13,
     (dct, np.float32, 1): 6,
@@ -417,10 +411,10 @@ def test_overwrite(routine, dtype, shape, axis, type, norm, overwrite_x):
         assert_equal(x2, x, err_msg="spurious overwrite in %s" % sig)
 
 
-class Test_DCTN_IDCTN:
+class Test_DCTN_IDCTN(object):
     dec = 14
     dct_type = [1, 2, 3, 4]
-    norms = [None, 'backward', 'ortho', 'forward']
+    norms = [None, 'ortho']
     rstate = np.random.RandomState(1234)
     shape = (32, 16)
     data = rstate.randn(*shape)
@@ -449,7 +443,7 @@ class Test_DCTN_IDCTN:
 
     @pytest.mark.parametrize('funcn,func', [(idctn, idct), (idstn, idst)])
     @pytest.mark.parametrize('dct_type', dct_type)
-    @pytest.mark.parametrize('norm', norms)
+    @pytest.mark.parametrize('norm', [None, 'ortho'])
     def test_idctn_vs_2d_reference(self, funcn, func, dct_type, norm):
         fdata = dctn(self.data, type=dct_type, norm=norm)
         y1 = funcn(fdata, type=dct_type, norm=norm)
